@@ -6,9 +6,7 @@ class UserManagementPage:
     def __init__(self, page):
         self.page = page
 
-    # ======================
-    # Locators
-    # ======================
+    #locators
 
     @property
     def user_management_link(self):
@@ -96,9 +94,7 @@ class UserManagementPage:
             name="Confirm & Create User"
         )
 
-    # ======================
-    # Actions
-    # ======================
+    #actions
 
     def open_user_management(self):
         self.user_management_link.click()
