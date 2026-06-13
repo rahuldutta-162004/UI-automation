@@ -1,0 +1,153 @@
+name: Pytest BDD Playwright
+
+on:
+  workflow_dispatch:
+    inputs:
+      browser:
+        description: 'Browser to run tests on'
+        required: false
+        default: 'chromium'
+        type: choice
+        options:
+          - chromium
+          - firefox
+          - webkit
+      tags:
+        description: 'BDD tags to filter (e.g. @smoke, @regression)'
+        required: false
+        default: ''
+      marker:
+        description: 'Pytest marker to filter'
+        required: false
+        default: ''
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+  schedule:
+    # Run nightly at 2 AM UTC
+    - cron: '0 2 * * *'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+        # Optional: add Python version matrix if needed
+        # python-version: ['3.10', '3.11', '3.12']
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: 'pip'
+
+      - name: Cache Playwright Browsers
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: |
+            ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ matrix.browser }}-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-${{ matrix.browser }}-
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install Playwright Browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: |
+          playwright install --with-deps ${{ matrix.browser }}
+
+      - name: Create Reports Directory
+        run: mkdir -p reports
+
+      - name: Run BDD Tests
+        env:
+          BROWSER: ${{ matrix.browser }}
+          HEADLESS: "true"
+          # Optional: pass BDD tags from workflow dispatch
+          BDD_TAGS: ${{ github.event.inputs.tags || '' }}
+        run: |
+          # Build pytest command with optional filters
+          PYTEST_CMD="pytest tests/ -v --browser ${{ matrix.browser }}"
+
+          # Add BDD tags if specified
+          if [ -n "$BDD_TAGS" ]; then
+            PYTEST_CMD="$PYTEST_CMD -k $BDD_TAGS"
+          fi
+
+          # Add marker if specified
+          if [ -n "${{ github.event.inputs.marker }}" ]; then
+            PYTEST_CMD="$PYTEST_CMD -m ${{ github.event.inputs.marker }}"
+          fi
+
+          # Add reporting options
+          PYTEST_CMD="$PYTEST_CMD --html=reports/report-${{ matrix.browser }}.html --self-contained-html"
+          PYTEST_CMD="$PYTEST_CMD --json-report --json-report-file=reports/report-${{ matrix.browser }}.json"
+          PYTEST_CMD="$PYTEST_CMD --junitxml=reports/junit-${{ matrix.browser }}.xml"
+
+          echo "Running: $PYTEST_CMD"
+          $PYTEST_CMD
+
+      - name: Upload Test Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report-${{ matrix.browser }}-${{ github.run_id }}
+          path: |
+            reports/
+            pytest_output.txt
+          retention-days: 30
+
+      - name: Upload Screenshots on Failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots-${{ matrix.browser }}-${{ github.run_id }}
+          path: |
+            reports/screenshots/
+            test-results/
+          retention-days: 7
+
+  # Optional: Allure Reporting Job
+  allure-report:
+    needs: test
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: allure-results
+          pattern: test-report-*
+
+      - name: Generate Allure Report
+        uses: simple-elf/allure-report-action@master
+        if: always()
+        id: allure
+        with:
+          allure_results: allure-results
+          allure_history: allure-history
+
+      - name: Deploy Report to GitHub Pages
+        if: always()
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: allure-history

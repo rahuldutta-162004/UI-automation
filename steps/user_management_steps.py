@@ -78,6 +78,13 @@ def duplicate_mobile(
         email
     )
 
+@when("user creates a new user without email")
+def create_user_without_email(page):
+    pass
+
+@then("the user creation should fail")
+def validate_user_creation_failure(page):
+    pass
 
 @then(
     "the user creation should fail with duplicate mobile error"

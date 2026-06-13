@@ -26,3 +26,10 @@ Feature: User Management
 
     Then the user creation should fail with duplicate mobile error
 
+  Scenario: New user without email id
+
+    Given user is authenticated
+
+    When user creates a new user without email
+
+    Then the user creation should fail

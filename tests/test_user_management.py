@@ -22,3 +22,10 @@ def test_duplicate_mobile():
 )
 def test_duplicate_email():
     pass
+
+@scenario(
+    "../features/user_management.feature",
+    "New user without email id"
+)
+def test_user_without_email():
+    pass
