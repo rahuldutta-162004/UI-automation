@@ -3,3 +3,4 @@ pytest-bdd
 playwright
 pytest-playwright
 pytest-html
+qase-pytest
