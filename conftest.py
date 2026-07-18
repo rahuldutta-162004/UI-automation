@@ -6,7 +6,7 @@ REFRESH_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcm
 @pytest.fixture(scope="session")
 def authenticated_page():
     with sync_playwright() as p:
-        browser = p.firefox.launch(headless=False)
+        browser = p.firefox.launch(headless=True)
 
         context = browser.new_context()
         page = context.new_page()
