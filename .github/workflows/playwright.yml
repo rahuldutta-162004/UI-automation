@@ -25,7 +25,7 @@ jobs:
         uses: astral-sh/setup-uv@v5
 
       - name: Install Playwright Browsers
-        run: .venv/bin/python -m playwright install --with-deps
+        run: pip -m playwright install --with
 
       - name: Run Tests
         run: |
