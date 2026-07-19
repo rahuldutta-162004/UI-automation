@@ -42,10 +42,16 @@ jobs:
           
         run: >
           python -m pip show pytest-json-report || true
-          pytest tests/
-          --alluredir=allure-results
-          --json-report
+          pytest tests/ \
+          --alluredir=allure-results \
+          --json-report \
           --json-report-file=report.json
+      - name: Check generated files
+        if: always()
+        run: |
+          pwd
+          find . -name "report.json"
+          ls -la
 
       - name: Generate Email HTML
         if: always()
