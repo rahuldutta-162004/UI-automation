@@ -39,11 +39,11 @@ jobs:
           QASE_DEBUG: "true"
           QASE_TESTOPS_API_TOKEN: ${{ secrets.QASE_TESTOPS_API_TOKEN }}
           QASE_TESTOPS_PROJECT: ${{ secrets.QASE_TESTOPS_PROJECT }}
-        run: |
-            pytest tests/
-            --alluredir=allure-results \
-            --json-report \
-            --json-report-file=report.json
+        run: >
+          pytest tests/
+          --alluredir=allure-results
+          --json-report
+          --json-report-file=report.json
 
       - name: Send Email
         if: always()
@@ -54,7 +54,21 @@ jobs:
           secure: true
           username: ${{ secrets.EMAIL_USERNAME }}
           password: ${{ secrets.EMAIL_PASSWORD }}
+      
           subject: Automation Test Report - ${{ job.status }}
+      
           to: rdlipika16@gmail.com,rahul@everflourish.in
+      
           from: GitHub Actions <${{ secrets.EMAIL_USERNAME }}>
-          html_body: file:reports/report.html
+      
+          body: |
+            Automation execution completed.
+      
+            Status: ${{ job.status }}
+      
+            Repository: ${{ github.repository }}
+            Branch: ${{ github.ref_name }}
+      
+            GitHub Run:
+            https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+                
