@@ -45,6 +45,11 @@ jobs:
           --json-report
           --json-report-file=report.json
 
+      - name: Generate Email HTML
+        if: always()
+        run: |
+          python scripts/create_email_report.py
+      
       - name: Send Email
         if: always()
         uses: dawidd6/action-send-mail@v3
@@ -52,6 +57,7 @@ jobs:
           server_address: smtp.gmail.com
           server_port: 465
           secure: true
+      
           username: ${{ secrets.EMAIL_USERNAME }}
           password: ${{ secrets.EMAIL_PASSWORD }}
       
