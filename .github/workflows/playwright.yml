@@ -41,3 +41,25 @@ jobs:
           QASE_TESTOPS_PROJECT: ${{ secrets.QASE_TESTOPS_PROJECT }}
         run: |
             pytest tests/
+
+      - name: Send Email
+        if: always()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: "Automation Test Report"
+          to: rdlipika16@gmail.com,rahul@everflourish.in
+          from: GitHub Actions <${{ secrets.EMAIL_USERNAME }}>
+          body: |
+            Automation execution completed.
+      
+            Status: ${{ job.status }}
+
+            GitHub Run:
+            https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      
+          attachments: allure-report.zip
