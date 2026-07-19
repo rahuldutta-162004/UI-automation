@@ -41,6 +41,9 @@ jobs:
           QASE_TESTOPS_PROJECT: ${{ secrets.QASE_TESTOPS_PROJECT }}
         run: |
             pytest tests/
+            --alluredir=allure-results \
+            --json-report \
+            --json-report-file=report.json
 
       - name: Send Email
         if: always()
