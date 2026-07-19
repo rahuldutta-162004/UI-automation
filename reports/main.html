@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Automation Test Report</title>
+
+<style>
+
+body{
+    margin:0;
+    padding:30px;
+    background:#edf2f7;
+    font-family:Arial,Helvetica,sans-serif;
+}
+
+.container{
+    max-width:900px;
+    margin:auto;
+    background:#ffffff;
+    border-radius:12px;
+    overflow:hidden;
+    box-shadow:0 5px 25px rgba(0,0,0,.15);
+}
+
+.header{
+    background:#1F2937;
+    color:white;
+    padding:25px;
+}
+
+.header h1{
+    margin:0;
+    font-size:30px;
+}
+
+.header p{
+    margin-top:8px;
+    color:#d1d5db;
+}
+
+.status{
+    text-align:center;
+    padding:18px;
+    font-size:28px;
+    font-weight:bold;
+}
+
+.success{
+    background:#d1fae5;
+    color:#065f46;
+}
+
+.failure{
+    background:#fee2e2;
+    color:#991b1b;
+}
+
+.warning{
+    background:#fff7d6;
+    color:#92400e;
+}
+
+.section{
+    padding:25px;
+}
+
+.title{
+    font-size:24px;
+    font-weight:bold;
+    color:#111827;
+    margin-bottom:20px;
+}
+
+.cards{
+    display:flex;
+    justify-content:space-between;
+    flex-wrap:wrap;
+}
+
+.card{
+    width:21%;
+    min-width:140px;
+    text-align:center;
+    border-radius:8px;
+    color:white;
+    padding:18px;
+    margin-bottom:15px;
+}
+
+.total{
+    background:#2563eb;
+}
+
+.pass{
+    background:#10b981;
+}
+
+.fail{
+    background:#ef4444;
+}
+
+.skip{
+    background:#f59e0b;
+}
+
+.card .value{
+    font-size:34px;
+    font-weight:bold;
+}
+
+.card .label{
+    margin-top:8px;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:15px;
+}
+
+th{
+    background:#1F2937;
+    color:white;
+    padding:12px;
+    text-align:left;
+}
+
+td{
+    padding:12px;
+    border-bottom:1px solid #dddddd;
+}
+
+.info td:first-child{
+    font-weight:bold;
+    width:220px;
+    background:#f8fafc;
+}
+
+.failed-table td{
+    color:#dc2626;
+}
+
+.footer{
+    background:#f3f4f6;
+    padding:25px;
+    text-align:center;
+    color:#6b7280;
+    font-size:13px;
+}
+
+.button{
+
+display:inline-block;
+
+padding:14px 25px;
+
+background:#2563eb;
+
+color:white !important;
+
+text-decoration:none;
+
+border-radius:6px;
+
+margin-top:20px;
+
+}
+
+hr{
+
+border:none;
+
+height:1px;
+
+background:#e5e7eb;
+
+margin:30px 0;
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="header">
+
+<h1>Automation Test Report</h1>
+
+<p>Playwright • Pytest • Allure • Qase • GitHub Actions</p>
+
+</div>
+
+<div class="status {{STATUS_CLASS}}">
+
+{{STATUS_ICON}} {{STATUS_TEXT}}
+
+</div>
+
+<div class="section">
+
+<div class="title">
+
+Execution Summary
+
+</div>
+
+<div class="cards">
+
+<div class="card total">
+
+<div class="value">{{TOTAL}}</div>
+
+<div class="label">Total Tests</div>
+
+</div>
+
+<div class="card pass">
+
+<div class="value">{{PASSED}}</div>
+
+<div class="label">Passed</div>
+
+</div>
+
+<div class="card fail">
+
+<div class="value">{{FAILED}}</div>
+
+<div class="label">Failed</div>
+
+</div>
+
+<div class="card skip">
+
+<div class="value">{{SKIPPED}}</div>
+
+<div class="label">Skipped</div>
+
+</div>
+
+</div>
+
+</div>
+
+<hr>
+
+<div class="section">
+
+<div class="title">
+
+Build Information
+
+</div>
+
+<table class="info">
+
+<tr>
+<td>Repository</td>
+<td>{{REPOSITORY}}</td>
+</tr>
+
+<tr>
+<td>Branch</td>
+<td>{{BRANCH}}</td>
+</tr>
+
+<tr>
+<td>Commit</td>
+<td>{{COMMIT}}</td>
+</tr>
+
+<tr>
+<td>Triggered By</td>
+<td>{{ACTOR}}</td>
+</tr>
+
+<tr>
+<td>Environment</td>
+<td>{{ENVIRONMENT}}</td>
+</tr>
+
+<tr>
+<td>Browser</td>
+<td>{{BROWSER}}</td>
+</tr>
+
+<tr>
+<td>Execution Time</td>
+<td>{{DURATION}}</td>
+</tr>
+
+<tr>
+<td>Execution Date</td>
+<td>{{DATE}}</td>
+</tr>
+
+</table>
+
+</div>
+
+<hr>
+
+<div class="section">
+
+<div class="title">
+
+Failed Test Cases
+
+</div>
+
+<table class="failed-table">
+
+<tr>
+
+<th>Test Name</th>
+
+<th>Error</th>
+
+</tr>
+
+{{FAILED_ROWS}}
+
+</table>
+
+</div>
+
+<hr>
+
+<div class="section">
+
+<div class="title">
+
+Quick Links
+
+</div>
+
+<a class="button" href="{{GITHUB_RUN_URL}}">
+
+View GitHub Workflow
+
+</a>
+
+&nbsp;
+
+<a class="button" href="{{QASE_URL}}">
+
+View Qase Run
+
+</a>
+
+</div>
+
+<div class="footer">
+
+<b>Generated Automatically by GitHub Actions</b>
+
+<br><br>
+
+Playwright | Pytest | Allure | Qase
+
+</div>
+
+</div>
+
+</body>
+</html>
