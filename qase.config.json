@@ -1,12 +1,12 @@
 {
   "mode": "testops",
   "testops": {
-    "project": "qa",
+    "project": "AUTO",
     "api": {
       "token": ""
     },
     "run": {
-      "title": "GitHub Automation Run"
+      "complete": true
     }
   }
 }
