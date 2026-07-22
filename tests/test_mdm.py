@@ -1,5 +1,6 @@
 from pytest_bdd import scenario
 from qase.pytest import qase
+from steps.mdm_steps import *
 
 @qase.id(101)
 @scenario("../features/mdm.feature", "Edit and verify item description from MDM task")
