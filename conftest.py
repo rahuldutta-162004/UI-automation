@@ -1,12 +1,13 @@
 import pytest
 from playwright.sync_api import sync_playwright
 
-ACCESS_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzg0NjExMjkzLCJpYXQiOjE3ODQ2MTA2OTMsImp0aSI6ImMzMDkzYzdmN2YzNDQ5NjZiY2QxZTY2Mjc5ZjFlYjFkIiwidXNlcl9pZCI6MzUsImlzX3NzbyI6dHJ1ZSwic3NvX3Byb3ZpZGVyX3VzZXJfaWQiOiIzNjdiZDAzOC00YjkwLTQ0NzctYWI4OS1kYzhlY2JiNzgxNzkiLCJzc29fY2xpZW50X2lkIjoxLCJyZWZyZXNoX2p0aSI6ImY0MWM4NDQyZmMyODRkMzJiMDZiZDJmMzk0NjA5ODE0In0.Ipy0QVdJc7Jocy7x3qxsG9L2dIfYniMnsh0oxcf_x38"
-REFRESH_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc4NDY5NzA5MywiaWF0IjoxNzg0NjEwNjkzLCJqdGkiOiJmNDFjODQ0MmZjMjg0ZDMyYjA2YmQyZjM5NDYwOTgxNCIsInVzZXJfaWQiOjM1LCJpc19zc28iOnRydWUsInNzb19wcm92aWRlcl91c2VyX2lkIjoiMzY3YmQwMzgtNGI5MC00NDc3LWFiODktZGM4ZWNiYjc4MTc5Iiwic3NvX2NsaWVudF9pZCI6MX0._NVid7Ie7gO1zYUrTApORm1gDNXz10JvNmNRayTxVqQ"
+ACCESS_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzg0NzE3NzE0LCJpYXQiOjE3ODQ2OTczNTMsImp0aSI6IjI1YjljMjM3NmNiMjQzNWJiZTg3Njg1NzJlNjE1MTQ4IiwidXNlcl9pZCI6MzUsImlzX3NzbyI6dHJ1ZSwic3NvX3Byb3ZpZGVyX3VzZXJfaWQiOiIzNjdiZDAzOC00YjkwLTQ0NzctYWI4OS1kYzhlY2JiNzgxNzkiLCJzc29fY2xpZW50X2lkIjoxLCJyZWZyZXNoX2p0aSI6IjFiMzc2MTM2ZTMzZjQxZThhYmQ5ZTkxN2JiMWE0ZWIzIn0.gvmgXRFQpkqHGgO7Zzz_BubjBcnl4wn0iyTxPXcPanQ"
+REFRESH_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc4NDc4Mzc1MywiaWF0IjoxNzg0Njk3MzUzLCJqdGkiOiIxYjM3NjEzNmUzM2Y0MWU4YWJkOWU5MTdiYjFhNGViMyIsInVzZXJfaWQiOjM1LCJpc19zc28iOnRydWUsInNzb19wcm92aWRlcl91c2VyX2lkIjoiMzY3YmQwMzgtNGI5MC00NDc3LWFiODktZGM4ZWNiYjc4MTc5Iiwic3NvX2NsaWVudF9pZCI6MX0.i5nzcFeOkMBeyvQksowenUXtIVSbSbAPiTduJHdTrGg"
+
 @pytest.fixture(scope="session")
 def authenticated_page():
     with sync_playwright() as p:
-        browser = p.firefox.launch(headless=True)
+        browser = p.chromium.launch(headless=False)
 
         context = browser.new_context()
         page = context.new_page()
@@ -22,11 +23,10 @@ def authenticated_page():
             """,
             [ACCESS_TOKEN, REFRESH_TOKEN]
         )
-
-    
+        
         page.reload()
-
         yield page
+       
 
         browser.close()
 @pytest.fixture

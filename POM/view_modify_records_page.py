@@ -63,7 +63,7 @@ class ViewModifyRecordsPage:
         self.control_panel_link.click()
         self.view_modify_records_link.click()
 
-        self.page.get_by_role("checkbox").nth(2).click()
+        self.page.get_by_role("checkbox").nth(8).click()
         self.submit_continue_btn.click()
 
     def verify_invalid_request_error(self):
