@@ -1,0 +1,88 @@
+name: Playwright Automation
+
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+env:
+  QASE_MODE: testops
+  QASE_DEBUG: "true"
+  QASE_TESTOPS_API_TOKEN: ${{ secrets.QASE_TESTOPS_API_TOKEN }}
+  QASE_TESTOPS_PROJECT: ${{ vars.QASE_TESTOPS_PROJECT }}
+  QASE_TESTOPS_RUN_COMPLETE: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install qase-pytest allure-pytest pytest-json-report
+
+      - name: Install Playwright Browsers
+        run: |
+          python -m playwright install --with-deps
+
+      - name: Set Qase Run Title
+        run: |
+          BRANCH_NAME=${GITHUB_REF##*/}
+          COMMIT_MESSAGE=$(git log -1 --pretty=format:%s)
+          echo "QASE_TESTOPS_RUN_TITLE=UI Automation | ${BRANCH_NAME} | ${COMMIT_MESSAGE}" >> $GITHUB_ENV
+
+      - name: Run Tests
+        run: |
+          pytest tests/test_mdm.py \
+            --alluredir=allure-results \
+            --json-report \
+            --json-report-file=report.json
+
+      - name: Generate Email HTML
+        if: always()
+        run: |
+          python scripts/create_email_report.py
+
+      - name: Send Email
+        if: always()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: Automation Test Report - ${{ job.status }}
+          to: rdlipika16@gmail.com,rahul@everflourish.in
+          from: GitHub Actions <${{ secrets.EMAIL_USERNAME }}>
+          html_body: file://reports/mail.html
+
+      - name: Upload Allure Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results
+          path: allure-results
+
+      - name: Upload JSON Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: report-json
+          path: report.json
