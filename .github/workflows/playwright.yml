@@ -72,9 +72,7 @@ jobs:
             tests/test_mdm.py \
             --alluredir=allure-results \
             --json-report \
-            --json-report-file=report.json \
-            --qase-mode=testops \
-            --qase-debug=true
+            --json-report-file=report.json
 
       - name: Check generated files
         if: always()
