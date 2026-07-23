@@ -1,46 +1,105 @@
-import pytest
-from playwright.sync_api import sync_playwright
+name: Playwright Automation
 
-ACCESS_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzg0NzkwMTA0LCJpYXQiOjE3ODQ3ODk1MDQsImp0aSI6IjFhNDcxZDM1OTJhYjQ2ZWViYTJkYzc4OGJkNDMzZDFkIiwidXNlcl9pZCI6MzUsImlzX3NzbyI6dHJ1ZSwic3NvX3Byb3ZpZGVyX3VzZXJfaWQiOiIzNjdiZDAzOC00YjkwLTQ0NzctYWI4OS1kYzhlY2JiNzgxNzkiLCJzc29fY2xpZW50X2lkIjoxLCJyZWZyZXNoX2p0aSI6ImJjZTAyNmYyM2Q5MzQxMjhhOWE2OTg0NjBlMjRjMWIyIn0.5qX9U30sFQC0SWPyR9Fqz2Mvy6HjqrixyNr_Hm10NFI"
-REFRESH_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc4NDg3NTkwNCwiaWF0IjoxNzg0Nzg5NTA0LCJqdGkiOiJiY2UwMjZmMjNkOTM0MTI4YTlhNjk4NDYwZTI0YzFiMiIsInVzZXJfaWQiOjM1LCJpc19zc28iOnRydWUsInNzb19wcm92aWRlcl91c2VyX2lkIjoiMzY3YmQwMzgtNGI5MC00NDc3LWFiODktZGM4ZWNiYjc4MTc5Iiwic3NvX2NsaWVudF9pZCI6MX0.5Z4J7oSQeN7o1D4KwPKUlsSTdFjIudV7ns4FYDGl10w"
+on:
+  workflow_dispatch:
+    inputs:
+      qase_api_base_url:
+        description: "Qase API URL"
+        required: true
 
-@pytest.fixture(scope="session")
-def authenticated_page():
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
+      qase_report:
+        description: "Enabled/Disabled reporting to Qase"
+        required: true
 
-        context = browser.new_context()
-        page = context.new_page()
+      qase_project_code:
+        description: "Qase Project Code"
+        required: true
 
-        page.goto("https://sentinel.oritiq.org/login")
+      qase_run_id:
+        description: "Qase Run ID"
+        required: true
 
-        page.evaluate(
-            """
-            ([access, refresh]) => {
-                localStorage.setItem("access_token", access);
-                localStorage.setItem("refresh_token", refresh);
-            }
-            """,
-            [ACCESS_TOKEN, REFRESH_TOKEN]
-        )
-        
-        page.reload()
-        yield page
-       
+      qase_run_complete:
+        description: "Qase Run autocomplete"
+        required: true
 
-        browser.close()
-@pytest.fixture
-def test_data():
-    return {}
+env:
+  QASE_API_BASE_URL: ${{ inputs.qase_api_base_url }}
+  QASE_MODE: testops
+  QASE_DEBUG: "true"
 
+  QASE_TESTOPS_PROJECT: ${{ inputs.qase_project_code }}
+  QASE_TESTOPS_RUN_ID: ${{ inputs.qase_run_id }}
+  QASE_TESTOPS_RUN_COMPLETE: true
 
-@pytest.fixture(autouse=True)
-def reload_after_scenario(authenticated_page):
-    """Reload the authenticated page after each test/scenario to ensure clean state."""
-    yield
-    try:
-        authenticated_page.reload()
-        authenticated_page.wait_for_load_state("networkidle")
-    except Exception:
-        # best-effort reload; don't fail the test because of reload errors
-        pass
+  QASE_TESTOPS_API_TOKEN: ${{ secrets.QASE_TESTOPS_API_TOKEN }}
+
+jobs:
+  playwright:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Link GitHub Run with Qase
+        uses: cskmnrpt/qase-link-run@v2
+        env:
+          QASE_TESTOPS_API_TOKEN: ${{ env.QASE_TESTOPS_API_TOKEN }}
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install allure-pytest
+          pip install pytest-json-report
+          pip install qase-pytest
+
+      - name: Install Playwright Browsers
+        run: python -m playwright install --with-deps
+
+      - name: Run Tests
+        run: |
+          pytest \
+            tests/test_mdm.py \
+            --alluredir=allure-results \
+            --json-report \
+            --json-report-file=report.json
+
+      - name: Check generated files
+        if: always()
+        run: |
+          pwd
+          find . -name "report.json"
+          ls -la
+
+      - name: Generate Email HTML
+        if: always()
+        run: python scripts/create_email_report.py
+
+      - name: Send Email
+        if: always()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+
+          subject: Automation Test Report - ${{ job.status }}
+
+          to: rdlipika16@gmail.com,rahul@everflourish.in
+
+          from: GitHub Actions <${{ secrets.EMAIL_USERNAME }}>
+
+          html_body: file://reports/mail.html
