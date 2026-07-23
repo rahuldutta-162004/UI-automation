@@ -6,4 +6,4 @@ pytest-html
 qase-pytest
 pytest-json-report
 allure-pytest
-pytest-json-report
+
