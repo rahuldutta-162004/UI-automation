@@ -34,6 +34,8 @@ def test_data():
     return {}
 
 
+
+
 @pytest.fixture(autouse=True)
 def reload_after_scenario(authenticated_page):
     """Reload the authenticated page after each test/scenario to ensure clean state."""
