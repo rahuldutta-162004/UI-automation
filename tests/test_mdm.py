@@ -1,5 +1,13 @@
-from pytest_bdd import scenarios
+from pytest_bdd import scenario
+from qase.pytest import qase
 
-from steps.mdm_steps import *
+@qase.id(101)
+@scenario("../features/mdm.feature", "Edit and verify item description from MDM task")
+def test_edit_item_description():
+    pass
 
-scenarios("../features/mdm.feature")
+
+@qase.id(102)
+@scenario("../features/mdm.feature", "Edit configuration code and validate that it can't be editable")
+def test_edit_configuration_code():
+    pass
